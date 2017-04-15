@@ -9,16 +9,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <!--无状态栏和标题栏-->
-        <activity android:name=".SplashActivity"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <activity
+            android:name=".SplashActivity"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GuideActivity"/>
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".GuideActivity" />
+        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>
