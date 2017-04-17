@@ -12,7 +12,7 @@
         android:layout_centerVertical="true"
         android:text="智慧北京"
         android:textColor="#fff"
-        android:textSize="22sp" />
+        android:textSize="18sp" />
 
     <ImageButton
         android:id="@+id/btn_menu"

@@ -4,14 +4,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v4.view.ViewPager
+    <tj.com.news.view.NoScrollViewPager
+        android:id="@+id/vp_content"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-    </android.support.v4.view.ViewPager>
+    </tj.com.news.view.NoScrollViewPager>
 
     <RadioGroup
+        android:id="@+id/rg_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bottom_tab_bg"
@@ -19,6 +21,7 @@
         android:orientation="horizontal">
 
         <RadioButton
+            android:checked="true"
             android:id="@+id/rb_home"
             style="@style/Bottom_Tab_Style"
             android:drawableTop="@drawable/tab_home_selector"

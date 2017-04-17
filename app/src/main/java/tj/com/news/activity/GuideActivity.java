@@ -1,4 +1,4 @@
-package tj.com.news;
+package tj.com.news.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -16,6 +16,8 @@ import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 
+import tj.com.news.MainActivity;
+import tj.com.news.R;
 import tj.com.news.utils.SpUtils;
 
 /**

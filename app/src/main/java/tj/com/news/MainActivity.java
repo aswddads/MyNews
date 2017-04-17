@@ -25,7 +25,7 @@ public class MainActivity extends SlidingFragmentActivity {
         setBehindContentView(R.layout.left_menu);//设置左侧边栏 设置右侧边栏  需要指定  默认左边
         SlidingMenu slidingMenu=getSlidingMenu();
         slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);//设置侧边栏拉伸的触点为全屏
-        slidingMenu.setBehindOffset(400);//设置拉出侧边栏剩余宽度
+        slidingMenu.setBehindOffset(200);//设置拉出侧边栏剩余宽度
         initFragment();
     }
 
@@ -40,5 +40,24 @@ public class MainActivity extends SlidingFragmentActivity {
         transaction.replace(R.id.fl_left_menu,new LeftMenuFragment(),TAG_LEFT_MENU);
         transaction.commit();//提交事物
 //        Fragment fragment=fm.findFragmentByTag(TAG_CONTENT);根据标记寻找fragment
+    }
+
+    /**
+     * 获取侧边栏对象
+     * @return
+     */
+    public LeftMenuFragment getLeftMenuFragment(){
+        FragmentManager fm=getSupportFragmentManager();//fragment的管理者
+        LeftMenuFragment fragment= (LeftMenuFragment) fm.findFragmentByTag(TAG_LEFT_MENU);
+        return fragment;
+    }
+    /**
+     * 获取主页面对象
+     * @return
+     */
+    public ContentFragment getContentFragment(){
+        FragmentManager fm=getSupportFragmentManager();//fragment的管理者
+        ContentFragment fragment= (ContentFragment) fm.findFragmentByTag(TAG_CONTENT);
+        return fragment;
     }
 }

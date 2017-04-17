@@ -3,6 +3,7 @@ package tj.com.news.impl;
 import android.app.Activity;
 import android.graphics.Color;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.TextView;
 
 import tj.com.news.base.BasePager;
@@ -28,5 +29,7 @@ public class SmartServicePager extends BasePager {
         view.setTextSize(22);
         view.setGravity(Gravity.CENTER);
         flContent.addView(view);
+        tvTitle.setText("服务中心");
+        btnMenu.setVisibility(View.VISIBLE);
     }
 }

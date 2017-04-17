@@ -6,6 +6,9 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+
+import tj.com.news.MainActivity;
 import tj.com.news.R;
 
 /**
@@ -38,6 +41,13 @@ public class BasePager {
         tvTitle=(TextView) view.findViewById(R.id.tv_title);
         btnMenu=(ImageButton) view.findViewById(R.id.btn_menu);
         flContent=(FrameLayout) view.findViewById(R.id.fl_content);
+
+        btnMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggle();
+            }
+        });
         return view;
     }
 
@@ -47,4 +57,13 @@ public class BasePager {
     public void initData(){
 
     }
+    /**
+     * 打开或者关闭侧边栏
+     */
+    private void toggle() {
+        MainActivity mainUI= (MainActivity) mActivity;
+        SlidingMenu slidingMenu=mainUI.getSlidingMenu();
+        slidingMenu.toggle();//如果当前状态为开，调用则关，反之亦然
+    }
+
 }
