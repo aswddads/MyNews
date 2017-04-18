@@ -3,50 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="180dp">
-        <tj.com.news.view.TopNewsViewPager
-            android:id="@+id/vp_top_news"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </tj.com.news.view.TopNewsViewPager>
-            <RelativeLayout
-                android:padding="5dp"
-                android:layout_gravity="bottom"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#a000">
-                <TextView
-                    android:id="@+id/tv_title"
-                    android:textSize="16sp"
-                    android:text="标题"
-                    android:textColor="#fff"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <com.viewpagerindicator.CirclePageIndicator
-                    xmlns:app="http://schemas.android.com/apk/res-auto"
-                    android:id="@+id/indicator"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:padding="10dp"
-                    app:radius="3dp"
-                    app:fillColor="#f00"
-                    app:pageColor="#cccccc"
-                    app:strokeWidth="0dp"
-                    />
 
-            </RelativeLayout>
-
-
-    </FrameLayout>
-    <ListView
+    <tj.com.news.view.PullToRefershListView
+        android:cacheColorHint="#FFF"
         android:id="@+id/lv_list"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_height="match_parent" />
 
 
 </LinearLayout>

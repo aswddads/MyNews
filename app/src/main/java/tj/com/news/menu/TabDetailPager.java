@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +30,7 @@ import tj.com.news.domain.NewsMenu;
 import tj.com.news.domain.NewsTabBeam;
 import tj.com.news.global.GlobalConstants;
 import tj.com.news.utils.CacheUtils;
+import tj.com.news.view.PullToRefershListView;
 import tj.com.news.view.TopNewsViewPager;
 
 /**
@@ -48,7 +48,7 @@ public class TabDetailPager extends BaseMenuDetailPager {
     @ViewInject(R.id.indicator)
     private CirclePageIndicator mIndicator;
     @ViewInject(R.id.lv_list)
-    private ListView lvList;
+    private PullToRefershListView lvList;
     private final String mUrl;
     private ArrayList<NewsTabBeam.TopNews> mTopnews;
     private ArrayList<NewsTabBeam.NewsData> mNewsList;
@@ -70,6 +70,23 @@ public class TabDetailPager extends BaseMenuDetailPager {
 
         View view = View.inflate(mActivity, R.layout.pager_tab_detail, null);
         ViewUtils.inject(this, view);
+
+        //给listview添加头布局
+        View mHeaderView=View.inflate(mActivity,R.layout.list_item_header,null);
+        ViewUtils.inject(this,mHeaderView);//头布局注入
+        lvList.addHeaderView(mHeaderView);
+
+/**
+ *            5.   设置回调监听
+ */
+        lvList.setOnRefreshListener(new PullToRefershListView.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+//                刷新数据
+                getDataFromServer();
+            }
+        });
+
         return view;
     }
 
@@ -91,12 +108,17 @@ public class TabDetailPager extends BaseMenuDetailPager {
                 String result = responseInfo.result;
                 processData(result);
                 CacheUtils.setCache(mActivity, mUrl, result);
+
+//                收起下拉刷新控件
+                lvList.onRefreshComplete(true);
             }
 
             @Override
             public void onFailure(HttpException e, String s) {
                 e.printStackTrace();
                 Toast.makeText(mActivity, s, Toast.LENGTH_SHORT).show();
+                //                收起下拉刷新控件
+                lvList.onRefreshComplete(false);
             }
         });
     }
