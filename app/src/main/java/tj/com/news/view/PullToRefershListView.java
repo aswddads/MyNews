@@ -6,6 +6,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -19,7 +20,7 @@ import tj.com.news.R;
  * Created by Jun on 17/4/18.
  */
 
-public class PullToRefershListView extends ListView {
+public class PullToRefershListView extends ListView implements AbsListView.OnScrollListener{
 
     private static final int STATE_PULL_TO_REFRESH = 1;
     private static final int STATE_RELEASE_TO_REFRESH = 2;
@@ -36,32 +37,39 @@ public class PullToRefershListView extends ListView {
     private RotateAnimation animUp;
     private RotateAnimation animDown;
     private ProgressBar progressBar;
+    private View mFootView;
+    private int mFootViewHeight;
+    private boolean isLodeMore;//标记是否加载更多
 
     public PullToRefershListView(Context context) {
         super(context);
         initHeaderView();
+        initFooterView();
     }
 
     public PullToRefershListView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initHeaderView();
+        initFooterView();
     }
 
     public PullToRefershListView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initHeaderView();
+        initFooterView();
     }
 
     public PullToRefershListView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         initHeaderView();
+        initFooterView();
     }
 
     /**
      * 初始化头布局
      */
     private void initHeaderView() {
-        mHeaderView = View.inflate(getContext(), R.layout.pull_to_refresh, null);
+        mHeaderView = View.inflate(getContext(), R.layout.pull_to_refresh_header, null);
         this.addHeaderView(mHeaderView);
 
         tvTitle = (TextView) mHeaderView.findViewById(R.id.tv_title);
@@ -217,21 +225,65 @@ public class PullToRefershListView extends ListView {
      */
     public interface OnRefreshListener {
         public void onRefresh();
+        public void onLoadMore();//加载更多
     }
 
     /**
      * 刷新结束，收起控件
      */
     public void onRefreshComplete(boolean success) {
-        mHeaderView.setPadding(0, -mHeaderViewMeasuredHeight, 0, 0);
-        mCurrentState = STATE_PULL_TO_REFRESH;
-        tvTitle.setText("下拉刷新");
-        progressBar.setVisibility(INVISIBLE);
-        ivArrow.setVisibility(VISIBLE);
-        if (success) {//成功才更新时间
-            setCurrentTime();
+        if (!isLodeMore){
+            mHeaderView.setPadding(0, -mHeaderViewMeasuredHeight, 0, 0);
+            mCurrentState = STATE_PULL_TO_REFRESH;
+            tvTitle.setText("下拉刷新");
+            progressBar.setVisibility(INVISIBLE);
+            ivArrow.setVisibility(VISIBLE);
+            if (success) {//成功才更新时间
+                setCurrentTime();
+            }
+        }else {
+            mFootView.setPadding(0,-mFootViewHeight,0,0);//隐藏加载更多
+            isLodeMore=false;
         }
 
     }
 
+    /**
+     * 初始脚布局
+     */
+    private void initFooterView(){
+        mFootView = View.inflate(getContext(), R.layout.pull_to_refresh_footer,null);
+        this.addFooterView(mFootView);
+        mFootView.measure(0,0);
+        mFootViewHeight = mFootView.getMeasuredHeight();
+        mFootView.setPadding(0,-mFootViewHeight,0,0);
+        this.setOnScrollListener(this);//设置滑动监听
+    }
+
+
+    /**
+     * listview滑动状态发生变化
+     * @param absListView
+     * @param i
+     */
+    @Override
+    public void onScrollStateChanged(AbsListView absListView, int i) {
+        if (i==SCROLL_STATE_IDLE){//空闲状态
+            int lastVisiblePosition=getLastVisiblePosition();
+            if (lastVisiblePosition==getCount()-1  && !isLodeMore){//到底了且未正在加载更多
+                mFootView.setPadding(0,0,0,0);//显示加载更多的布局
+                isLodeMore=true;
+                setSelection(getCount()-1);//显示在最后一个item
+//              通知主界面加载更多
+                if (mListener!=null){
+                    mListener.onLoadMore();
+                }
+            }
+        }
+    }
+//滑动过程
+    @Override
+    public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+
+    }
 }

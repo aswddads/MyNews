@@ -1,11 +1,14 @@
 package tj.com.news.menu;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,11 +28,13 @@ import com.viewpagerindicator.CirclePageIndicator;
 import java.util.ArrayList;
 
 import tj.com.news.R;
+import tj.com.news.activity.NewsDetailActivity;
 import tj.com.news.base.BaseMenuDetailPager;
 import tj.com.news.domain.NewsMenu;
 import tj.com.news.domain.NewsTabBeam;
 import tj.com.news.global.GlobalConstants;
 import tj.com.news.utils.CacheUtils;
+import tj.com.news.utils.SpUtils;
 import tj.com.news.view.PullToRefershListView;
 import tj.com.news.view.TopNewsViewPager;
 
@@ -53,6 +58,7 @@ public class TabDetailPager extends BaseMenuDetailPager {
     private ArrayList<NewsTabBeam.TopNews> mTopnews;
     private ArrayList<NewsTabBeam.NewsData> mNewsList;
     private NewsAdapter mNewsAdapter;
+    private String mMoreUrl;//下一页数据链接
 
     public TabDetailPager(Activity activity, NewsMenu.NewsTabData newsTabData) {
         super(activity);
@@ -85,9 +91,69 @@ public class TabDetailPager extends BaseMenuDetailPager {
 //                刷新数据
                 getDataFromServer();
             }
-        });
 
+            @Override
+            public void onLoadMore() {
+//                加载下一页数据
+                if (mMoreUrl!=null){
+//                    有下一页数据
+                    getMoreDataFromServer();
+                }else {
+//                   没有数据
+                    Toast.makeText(mActivity,"没有更多信息了...",Toast.LENGTH_SHORT).show();
+                    lvList.onRefreshComplete(false);
+                }
+            }
+        });
+        lvList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                int headerViewCount=lvList.getHeaderViewsCount();//获取头布局数量
+                position=position-headerViewCount;//需要减去头布局的占位
+                NewsTabBeam.NewsData news=mNewsList.get(position);
+//                read_id:1101，1002
+                String readIds=SpUtils.getString(mActivity,"read_ids","");
+                if (readIds.contains(news.id+"")){//不包含当前id才添加
+                    readIds=readIds+news.id+",";
+                    SpUtils.putString(mActivity,"read_ids",readIds);
+                }
+//                要将被点击的item颜色变为灰色
+                TextView tvTitle= (TextView) view.findViewById(R.id.tv_title);
+                tvTitle.setTextColor(Color.GRAY);
+//                mNewsAdapter.notifyDataSetChanged();  全局刷新，浪费性能
+//                点击跳转到新闻详情页面
+                Intent intent=new Intent(mActivity, NewsDetailActivity.class);
+                intent.putExtra("url",news.url);
+                mActivity.startActivity(intent);
+            }
+        });
         return view;
+    }
+
+    /**
+     * 加载下一页数据
+     */
+    private void getMoreDataFromServer() {
+        HttpUtils utils = new HttpUtils();
+        utils.send(HttpRequest.HttpMethod.GET, mMoreUrl, new RequestCallBack<String>() {
+            @Override
+            public void onSuccess(ResponseInfo<String> responseInfo) {
+                String result = responseInfo.result;
+                processData(result,true);
+//                CacheUtils.setCache(mActivity, mUrl, result);
+
+//                收起下拉刷新控件
+                lvList.onRefreshComplete(true);
+            }
+
+            @Override
+            public void onFailure(HttpException e, String s) {
+                e.printStackTrace();
+                Toast.makeText(mActivity, s, Toast.LENGTH_SHORT).show();
+                //                收起下拉刷新控件
+               lvList.onRefreshComplete(false);
+            }
+        });
     }
 
     @Override
@@ -95,7 +161,7 @@ public class TabDetailPager extends BaseMenuDetailPager {
 //        view.setText(mTabData.title);
         String cache = CacheUtils.getCache(mActivity, mUrl);
         if (!TextUtils.isEmpty(cache)) {
-            processData(cache);
+            processData(cache,false);
         }
         getDataFromServer();
     }
@@ -106,7 +172,7 @@ public class TabDetailPager extends BaseMenuDetailPager {
             @Override
             public void onSuccess(ResponseInfo<String> responseInfo) {
                 String result = responseInfo.result;
-                processData(result);
+                processData(result,false);
                 CacheUtils.setCache(mActivity, mUrl, result);
 
 //                收起下拉刷新控件
@@ -123,47 +189,64 @@ public class TabDetailPager extends BaseMenuDetailPager {
         });
     }
 
-    private void processData(String result) {
+    private void processData(String result,boolean isMore) {
         Gson gson = new Gson();
         NewsTabBeam newsTabBeam = gson.fromJson(result, NewsTabBeam.class);
         mTopnews = newsTabBeam.data.topnews;
+        String moreUrl=newsTabBeam.data.more;
+        if (!TextUtils.isEmpty(moreUrl)){
+            mMoreUrl = GlobalConstants.SERVER_URL+moreUrl;
+        }else {
+            mMoreUrl=null;
+        }
+        if (!isMore){
+            //头条新闻填充数据
+            if (mTopnews != null) {
+                mViewPager.setAdapter(new TopNewsAdapter());
 
-        //头条新闻填充数据
-        if (mTopnews != null) {
-            mViewPager.setAdapter(new TopNewsAdapter());
-
-            mIndicator.setViewPager(mViewPager);
-            mIndicator.setSnap(true);//快照显示展示
+                mIndicator.setViewPager(mViewPager);
+                mIndicator.setSnap(true);//快照显示展示
 
 //            事件要设置给mIndicator
-            mIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                mIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-                }
+                    }
 
-                @Override
-                public void onPageSelected(int position) {
+                    @Override
+                    public void onPageSelected(int position) {
 //                    跟新头条新闻的标题
-                    NewsTabBeam.TopNews topNews = mTopnews.get(position);
-                    tvTitle.setText(topNews.title);
-                }
+                        NewsTabBeam.TopNews topNews = mTopnews.get(position);
+                        tvTitle.setText(topNews.title);
+                    }
 
-                @Override
-                public void onPageScrollStateChanged(int state) {
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
 
-                }
-            });
-            tvTitle.setText(mTopnews.get(0).title);//手动添加第一页的新闻标题
-            mIndicator.onPageSelected(0);//默认回到0页面   解决销毁后  回到上次保留的状态 页面确是第一页
-        }
+                    }
+                });
+                tvTitle.setText(mTopnews.get(0).title);//手动添加第一页的新闻标题
+                mIndicator.onPageSelected(0);//默认回到0页面   解决销毁后  回到上次保留的状态 页面确是第一页
+            }
 
 //        列表新闻
-        mNewsList = newsTabBeam.data.news;
-        if (mNewsList != null) {
-            mNewsAdapter = new NewsAdapter();
-            lvList.setAdapter(mNewsAdapter);
+            mNewsList = newsTabBeam.data.news;
+            if (mNewsList != null) {
+                mNewsAdapter = new NewsAdapter();
+                lvList.setAdapter(mNewsAdapter);
+            }
+
+        }else {
+            //加载更多
+            ArrayList<NewsTabBeam.NewsData> moreNews=newsTabBeam.data.news;
+            mNewsList.addAll(moreNews);//将数据追加在原来的集合后
+//            刷新listview
+            mNewsAdapter.notifyDataSetChanged();
+
         }
+
+
     }
 
     /**
@@ -245,6 +328,13 @@ public class TabDetailPager extends BaseMenuDetailPager {
             NewsTabBeam.NewsData news= (NewsTabBeam.NewsData) getItem(i);
             holder.tvTitle.setText(news.title);
             holder.tvDate.setText(news.pubdate);
+            //根据记录标记已读未读
+            String readIds=SpUtils.getString(mActivity,"read_ids","");
+            if (readIds.contains(news.id+"")){
+                holder.tvTitle.setTextColor(Color.GRAY);
+            }else {
+                holder.tvTitle.setTextColor(Color.BLACK);
+            }
             mBitmapUtils.display(holder.ivIcon,news.listimage);
             return convertView;
         }
